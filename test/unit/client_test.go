@@ -10,19 +10,42 @@ import (
 	"github.com/rinaldypasya/realtime-sdk/pkg/config"
 	"github.com/rinaldypasya/realtime-sdk/pkg/events"
 	"github.com/rinaldypasya/realtime-sdk/pkg/message"
+	"github.com/rinaldypasya/realtime-sdk/pkg/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testAPIKey     = "test-api-key"
+	testEndpoint   = "wss://test.example.com/realtime"
+)
+
+// setupMockServer starts a mock WebSocket server for testing
+func setupMockServer(t *testing.T) (*mock.Server, string) {
+	t.Helper()
+	mockServer := mock.NewServer("127.0.0.1:18080")
+	err := mockServer.Start()
+	require.NoError(t, err)
+
+	// Get the WebSocket URL
+	endpoint := mockServer.URL()
+
+	t.Cleanup(func() {
+		mockServer.Stop()
+	})
+
+	return mockServer, endpoint
+}
+
 func TestNewClient(t *testing.T) {
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: testEndpoint,
 	}
 
 	c := client.NewClient(cfg)
 	assert.NotNil(t, c)
-	assert.Equal(t, "wss://test.example.com/realtime", c.Config().Endpoint)
+	assert.Equal(t, testEndpoint, c.Config().Endpoint)
 	assert.NotEmpty(t, c.UserID())
 }
 
@@ -57,9 +80,11 @@ func TestClientBuilderValidation(t *testing.T) {
 }
 
 func TestClientConnectDisconnect(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -76,9 +101,11 @@ func TestClientConnectDisconnect(t *testing.T) {
 }
 
 func TestClientClose(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -96,8 +123,8 @@ func TestClientClose(t *testing.T) {
 
 func TestSendMessageNotConnected(t *testing.T) {
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: testEndpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -107,9 +134,11 @@ func TestSendMessageNotConnected(t *testing.T) {
 }
 
 func TestSendMessage(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -123,9 +152,11 @@ func TestSendMessage(t *testing.T) {
 }
 
 func TestSendMessageWithOptions(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -147,9 +178,11 @@ func TestSendMessageWithOptions(t *testing.T) {
 }
 
 func TestEventSubscription(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -184,9 +217,11 @@ func TestEventSubscription(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -211,9 +246,11 @@ func TestUnsubscribe(t *testing.T) {
 }
 
 func TestJoinLeaveChannel(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -238,9 +275,11 @@ func TestJoinLeaveChannel(t *testing.T) {
 }
 
 func TestStream(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -268,9 +307,11 @@ func TestStream(t *testing.T) {
 }
 
 func TestContextCancellation(t *testing.T) {
+	_, endpoint := setupMockServer(t)
+
 	cfg := config.Config{
-		APIKey:   "test-api-key",
-		Endpoint: "wss://test.example.com/realtime",
+		APIKey:   testAPIKey,
+		Endpoint: endpoint,
 	}
 
 	c := client.NewClient(cfg)
@@ -279,8 +320,6 @@ func TestContextCancellation(t *testing.T) {
 	cancel() // Cancel immediately
 
 	err := c.ConnectWithContext(ctx)
-	// Should return context error or succeed quickly
-	if err != nil {
-		assert.Equal(t, context.Canceled, err)
-	}
+	// Should return error (either context error or connection error due to cancellation)
+	assert.Error(t, err)
 }
