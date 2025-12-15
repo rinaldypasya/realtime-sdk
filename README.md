@@ -18,6 +18,21 @@ A production-ready Golang SDK for real-time messaging and video streaming, featu
 go get github.com/rinaldypasya/realtime-sdk
 ```
 
+## Configuration
+
+The SDK requires API credentials to connect to the realtime server. You can configure these using environment variables:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your credentials
+REALTIME_API_KEY=your-api-key-here
+REALTIME_ENDPOINT=wss://your-server.com/realtime
+```
+
+**Note:** Never commit your `.env` file to version control. It's already included in `.gitignore`.
+
 ## Quick Start
 
 ```go
@@ -26,6 +41,7 @@ package main
 import (
     "fmt"
     "log"
+    "os"
 
     "github.com/rinaldypasya/realtime-sdk/pkg/client"
     "github.com/rinaldypasya/realtime-sdk/pkg/config"
@@ -33,10 +49,14 @@ import (
 )
 
 func main() {
+    // Load credentials from environment variables
+    apiKey := os.Getenv("REALTIME_API_KEY")
+    endpoint := os.Getenv("REALTIME_ENDPOINT")
+
     // Initialize the SDK with configuration
     sdk := client.NewClient(config.Config{
-        APIKey:   "my-api-key",
-        Endpoint: "wss://example.com/realtime",
+        APIKey:   apiKey,
+        Endpoint: endpoint,
     })
 
     // Register event handlers
@@ -56,6 +76,17 @@ func main() {
         log.Fatal(err)
     }
 }
+```
+
+### Running the Examples
+
+```bash
+# Set environment variables
+export REALTIME_API_KEY=your-api-key
+export REALTIME_ENDPOINT=wss://your-server.com/realtime
+
+# Run the example application
+go run cmd/example/main.go
 ```
 
 ## Architecture

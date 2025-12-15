@@ -17,6 +17,15 @@ import (
 	"github.com/rinaldypasya/realtime-sdk/pkg/message"
 )
 
+const (
+	envAPIKey  = "REALTIME_API_KEY"
+	envEndpoint = "REALTIME_ENDPOINT"
+
+	msgSkipMissingCreds = "Skipping: REALTIME_API_KEY and REALTIME_ENDPOINT must be set"
+	msgFailedToConnect  = "Failed to connect: %v"
+	channelGeneral      = "general"
+)
+
 func main() {
 	// Example 1: Basic Usage with Config struct
 	basicUsageExample()
@@ -37,21 +46,30 @@ func main() {
 func basicUsageExample() {
 	fmt.Println("\n=== Basic Usage Example ===")
 
+	// Get credentials from environment variables
+	apiKey := os.Getenv(envAPIKey)
+	endpoint := os.Getenv(envEndpoint)
+
+	if apiKey == "" || endpoint == "" {
+		log.Println(msgSkipMissingCreds)
+		return
+	}
+
 	// Initialize the SDK with configuration
 	sdk := client.NewClient(config.Config{
-		APIKey:   "my-api-key",
-		Endpoint: "wss://example.com/realtime", 
+		APIKey:   apiKey,
+		Endpoint: endpoint,
 	})
 
 	// Connect to the server
 	if err := sdk.Connect(); err != nil {
-		log.Printf("Failed to connect: %v", err)
+		log.Printf(msgFailedToConnect, err)
 		return
 	}
 	defer sdk.Close()
 
 	// Send a message
-	err := sdk.SendMessage("general", "Hello, world!")
+	err := sdk.SendMessage(channelGeneral, "Hello, world!")
 	if err != nil {
 		log.Printf("Failed to send message: %v", err)
 		return
@@ -63,10 +81,18 @@ func basicUsageExample() {
 func builderPatternExample() {
 	fmt.Println("\n=== Builder Pattern Example ===")
 
+	apiKey := os.Getenv(envAPIKey)
+	endpoint := os.Getenv(envEndpoint)
+
+	if apiKey == "" || endpoint == "" {
+		log.Println(msgSkipMissingCreds)
+		return
+	}
+
 	// Use builder for more control
 	sdk, err := client.NewClientBuilder().
-		WithAPIKey("my-api-key").
-		WithEndpoint("wss://example.com/realtime").
+		WithAPIKey(apiKey).
+		WithEndpoint(endpoint).
 		WithReconnectDelay(time.Second * 5).
 		WithMaxReconnects(10).
 		WithHeartbeatInterval(time.Second * 30).
@@ -86,9 +112,17 @@ func builderPatternExample() {
 func eventHandlingExample() {
 	fmt.Println("\n=== Event Handling Example ===")
 
+	apiKey := os.Getenv(envAPIKey)
+	endpoint := os.Getenv(envEndpoint)
+
+	if apiKey == "" || endpoint == "" {
+		log.Println(msgSkipMissingCreds)
+		return
+	}
+
 	sdk := client.NewClient(config.Config{
-		APIKey:   "my-api-key",
-		Endpoint: "wss://example.com/realtime",
+		APIKey:   apiKey,
+		Endpoint: endpoint,
 	})
 
 	// Register event handlers
@@ -125,7 +159,7 @@ func eventHandlingExample() {
 	_ = unsubscribe // Call unsubscribe() to remove the handler
 
 	if err := sdk.Connect(); err != nil {
-		log.Printf("Failed to connect: %v", err)
+		log.Printf(msgFailedToConnect, err)
 		return
 	}
 	defer sdk.Close()
@@ -136,13 +170,21 @@ func eventHandlingExample() {
 func videoStreamingExample() {
 	fmt.Println("\n=== Video Streaming Example ===")
 
+	apiKey := os.Getenv(envAPIKey)
+	endpoint := os.Getenv(envEndpoint)
+
+	if apiKey == "" || endpoint == "" {
+		log.Println(msgSkipMissingCreds)
+		return
+	}
+
 	sdk := client.NewClient(config.Config{
-		APIKey:   "my-api-key",
-		Endpoint: "wss://example.com/realtime",
+		APIKey:   apiKey,
+		Endpoint: endpoint,
 	})
 
 	if err := sdk.Connect(); err != nil {
-		log.Printf("Failed to connect: %v", err)
+		log.Printf(msgFailedToConnect, err)
 		return
 	}
 	defer sdk.Close()
@@ -175,10 +217,18 @@ func videoStreamingExample() {
 func fullApplicationExample() {
 	fmt.Println("\n=== Full Application Example ===")
 
+	apiKey := os.Getenv(envAPIKey)
+	endpoint := os.Getenv(envEndpoint)
+
+	if apiKey == "" || endpoint == "" {
+		log.Println(msgSkipMissingCreds)
+		return
+	}
+
 	// Create client with builder
 	sdk, err := client.NewClientBuilder().
-		WithAPIKey("my-api-key").
-		WithEndpoint("wss://example.com/realtime").
+		WithAPIKey(apiKey).
+		WithEndpoint(endpoint).
 		WithReconnectDelay(time.Second * 3).
 		WithMaxReconnects(5).
 		Build()
